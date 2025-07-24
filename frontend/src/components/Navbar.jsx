@@ -5,6 +5,17 @@ import { FaPlusSquare } from "react-icons/fa";
 import { useColorMode } from "./ui/color-mode";
 import { IoMoonSharp, IoSunnySharp } from "react-icons/io5";
 
+const buttonStyles = {
+    bg: "gray.200",
+    color: "gray.800",
+    _hover: { bg: "gray.300" },
+    _dark: {
+        bg: "gray.700",
+        color: "gray.100",
+        _hover: { bg: "gray.600" },
+    },
+};
+
 const Navbar = () => {
     const { colorMode, toggleColorMode } = useColorMode();
     return (
@@ -32,37 +43,14 @@ const Navbar = () => {
                 </Text>
                 <HStack spacing={2} alignItems={"center"}>
                     <Link to="/create">
-                        <Button
-                            bg={"gray.200"}
-                            color={"gray.800"}
-                            _hover={{
-                                bg: "gray.300",
-                            }}
-                            _dark={{
-                                bg: "gray.700",
-                                color: "gray.100",
-                                _hover: {
-                                    bg: "gray.600",
-                                },
-                            }}
-                        >
+                        <Button {...buttonStyles} aria-label="Create Product">
                             <FaPlusSquare fontSize={"20px"} />
                         </Button>
                     </Link>
                     <Button
                         onClick={toggleColorMode}
-                        bg={"gray.200"}
-                        color={"gray.800"}
-                        _hover={{
-                            bg: "gray.300",
-                        }}
-                        _dark={{
-                            bg: "gray.700",
-                            color: "gray.100",
-                            _hover: {
-                                bg: "gray.600",
-                            },
-                        }}
+                        aria-label="Toggle color mode"
+                        {...buttonStyles}
                     >
                         {colorMode === "light" ? (
                             <IoMoonSharp />
