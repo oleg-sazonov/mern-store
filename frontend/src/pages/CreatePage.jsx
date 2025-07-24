@@ -1,4 +1,5 @@
 import { useColorModeValue } from "@/components/ui/color-mode";
+import { useProductStore } from "@/store/product";
 import {
     Box,
     Button,
@@ -15,6 +16,7 @@ const CreatePage = () => {
         price: "",
         image: "",
     });
+    const { createProduct } = useProductStore();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -24,9 +26,11 @@ const CreatePage = () => {
         }));
     };
 
-    const handleAddProduct = (product) => {
-        // Logic to add the product, e.g., API call
-        console.log("Product added:", product);
+    const handleAddProduct = async (product) => {
+        const { success, message } = await createProduct(product);
+
+        console.log("Success:", success);
+        console.log("Message:", message);
         // Reset form
         setNewProduct({ name: "", price: "", image: "" });
     };

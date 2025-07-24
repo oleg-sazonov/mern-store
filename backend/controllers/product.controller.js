@@ -71,7 +71,7 @@ export const updateProduct = async (req, res) => {
     }
 };
 
-export const deletedProduct = async (req, res) => {
+export const deleteProduct = async (req, res) => {
     const { id } = req.params;
     console.log(`id: ${id}`);
 
@@ -83,8 +83,8 @@ export const deletedProduct = async (req, res) => {
     }
 
     try {
-        const deletedProduct = await Product.findByIdAndDelete(id);
-        if (!deletedProduct) {
+        const deleteProduct = await Product.findByIdAndDelete(id);
+        if (!deleteProduct) {
             return res
                 .status(404)
                 .json({ success: false, message: "Product not found" });
