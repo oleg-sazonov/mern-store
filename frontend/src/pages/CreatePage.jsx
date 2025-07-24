@@ -1,5 +1,6 @@
 import { useColorModeValue } from "@/components/ui/color-mode";
 import { useProductStore } from "@/store/product";
+import { toaster } from "@/components/ui/toaster";
 import {
     Box,
     Button,
@@ -27,12 +28,42 @@ const CreatePage = () => {
     };
 
     const handleAddProduct = async (product) => {
+        // Show loading toast
+        const loadingToast = toaster.create({
+            title: "Creating Product...",
+            type: "loading",
+            status: "loading",
+            duration: null, // Don't auto-dismiss
+        });
+
         const { success, message } = await createProduct(product);
 
-        console.log("Success:", success);
-        console.log("Message:", message);
-        // Reset form
-        setNewProduct({ name: "", price: "", image: "" });
+        // Close loading toast
+        toaster.dismiss(loadingToast);
+
+        if (success) {
+            // Success toast
+            toaster.create({
+                title: "Success!",
+                description: message,
+                type: "success",
+                status: "success",
+                duration: 3000,
+                closable: true,
+            });
+            // Reset form
+            setNewProduct({ name: "", price: "", image: "" });
+        } else {
+            // Error toast
+            toaster.create({
+                title: "Oops! Something went wrong.",
+                description: message,
+                type: "error",
+                status: "error",
+                duration: 4000,
+                closable: true,
+            });
+        }
     };
     return (
         <Container
