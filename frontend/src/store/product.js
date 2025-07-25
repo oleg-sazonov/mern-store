@@ -1,37 +1,83 @@
 import { create } from "zustand";
+import { productApi } from "@/api/productApi";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-export const useProductStore = create((set) => ({
+export const useProductStore = create((set, get) => ({
+    // State
     products: [],
+    loading: false,
+    error: null,
+
+    // Basic setters
     setProducts: (products) => set({ products }),
-    createProduct: async (newProduct) => {
-        if (
-            !newProduct ||
-            !newProduct.name ||
-            !newProduct.price ||
-            !newProduct.image
-        ) {
-            return { success: false, message: "Please fill in all fields" };
+    setLoading: (loading) => set({ loading }),
+    setError: (error) => set({ error }),
+
+    // Actions
+    fetchProducts: async () => {
+        set({ loading: true, error: null });
+        try {
+            const data = await productApi.getAllProducts();
+            set({ products: data.products, loading: false });
+            return { success: true, data: data.products };
+        } catch (error) {
+            set({ error: error.message, loading: false });
+            return { success: false, message: error.message };
         }
-        const res = await fetch(`${API_URL}/api/products`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(newProduct),
-        });
-        const data = await res.json();
-        if (res.ok) {
+    },
+
+    createProduct: async (newProduct) => {
+        set({ loading: true, error: null });
+        try {
+            const data = await productApi.createProduct(newProduct);
             set((state) => ({
                 products: [...state.products, data.product],
+                loading: false,
             }));
             return { success: true, message: "Product created successfully" };
-        } else {
-            return {
-                success: false,
-                message: data.message || "Failed to create product",
-            };
+        } catch (error) {
+            set({ error: error.message, loading: false });
+            return { success: false, message: error.message };
         }
+    },
+
+    updateProduct: async (id, updateData) => {
+        set({ loading: true, error: null });
+        try {
+            const data = await productApi.updateProduct(id, updateData);
+            set((state) => ({
+                products: state.products.map((product) =>
+                    product._id === id ? data.product : product
+                ),
+                loading: false,
+            }));
+            return { success: true, message: "Product updated successfully" };
+        } catch (error) {
+            set({ error: error.message, loading: false });
+            return { success: false, message: error.message };
+        }
+    },
+
+    deleteProduct: async (id) => {
+        set({ loading: true, error: null });
+        try {
+            await productApi.deleteProduct(id);
+            set((state) => ({
+                products: state.products.filter(
+                    (product) => product._id !== id
+                ),
+                loading: false,
+            }));
+            return { success: true, message: "Product deleted successfully" };
+        } catch (error) {
+            set({ error: error.message, loading: false });
+            return { success: false, message: error.message };
+        }
+    },
+
+    // Helper methods
+    clearError: () => set({ error: null }),
+    getProductById: (id) => {
+        const { products } = get();
+        return products.find((product) => product._id === id);
     },
 }));

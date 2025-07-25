@@ -17,7 +17,7 @@ const CreatePage = () => {
         price: "",
         image: "",
     });
-    const { createProduct } = useProductStore();
+    const { createProduct, loading } = useProductStore();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -28,21 +28,9 @@ const CreatePage = () => {
     };
 
     const handleAddProduct = async (product) => {
-        // Show loading toast
-        const loadingToast = toaster.create({
-            title: "Creating Product...",
-            type: "loading",
-            status: "loading",
-            duration: null, // Don't auto-dismiss
-        });
-
         const { success, message } = await createProduct(product);
 
-        // Close loading toast
-        toaster.dismiss(loadingToast);
-
         if (success) {
-            // Success toast
             toaster.create({
                 title: "Success!",
                 description: message,
@@ -54,9 +42,8 @@ const CreatePage = () => {
             // Reset form
             setNewProduct({ name: "", price: "", image: "" });
         } else {
-            // Error toast
             toaster.create({
-                title: "Oops! Something went wrong.",
+                title: "Error",
                 description: message,
                 type: "error",
                 status: "error",
@@ -105,11 +92,12 @@ const CreatePage = () => {
                         <Button
                             w={"full"}
                             colorPalette="gray"
+                            loading={loading}
                             onClick={() => {
                                 handleAddProduct(newProduct);
                             }}
                         >
-                            Add Product
+                            {loading ? "Creating..." : "Add Product"}
                         </Button>
                     </VStack>
                 </Box>
