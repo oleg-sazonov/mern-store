@@ -12,8 +12,12 @@ export const useProductStore = create((set, get) => ({
     setLoading: (loading) => set({ loading }),
     setError: (error) => set({ error }),
 
-    // Actions
+    // Actions - these are already stable references in Zustand
     fetchProducts: async () => {
+        // Prevent multiple simultaneous fetches
+        const { loading } = get();
+        if (loading) return { success: false, message: "Already loading" };
+
         set({ loading: true, error: null });
         try {
             const data = await productApi.getAllProducts();
@@ -61,6 +65,7 @@ export const useProductStore = create((set, get) => ({
         set({ loading: true, error: null });
         try {
             await productApi.deleteProduct(id);
+            // Update UI immediately without reloading page
             set((state) => ({
                 products: state.products.filter(
                     (product) => product._id !== id
