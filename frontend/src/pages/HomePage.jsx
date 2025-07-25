@@ -77,8 +77,9 @@ const HomePage = () => {
                 {/* Products Grid */}
                 <SimpleGrid
                     columns={{ base: 1, md: 2, lg: 3 }}
-                    spacing={10}
+                    gap={{ base: 6, md: 8, lg: 10 }}
                     w="full"
+                    px={{ base: 4, md: 0 }}
                 >
                     {products.map((product) => (
                         <ProductCard key={product._id} product={product} />

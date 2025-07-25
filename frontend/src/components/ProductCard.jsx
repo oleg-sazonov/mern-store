@@ -5,19 +5,30 @@ import {
     IconButton,
     Image,
     Text,
+    Button,
+    Input,
+    VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import { Dialog } from "@chakra-ui/react";
+import React, { useState } from "react";
 import { useProductStore } from "@/store/product";
-import { useColorModeValue } from "./ui/color-mode";
 import { toaster } from "./ui/toaster";
 import { MdDeleteOutline } from "react-icons/md";
 import { IoMdCreate } from "react-icons/io";
+import { useProductCardStyles } from "./ProductCard.styles";
 
 const ProductCard = ({ product }) => {
-    const textColor = useColorModeValue("gray.600", "gray.200");
-    const bg = useColorModeValue("white", "gray.700");
+    const styles = useProductCardStyles();
+    const { colors } = styles;
 
-    const { deleteProduct } = useProductStore();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState({
+        name: product.name,
+        price: product.price,
+        image: product.image,
+    });
+
+    const { deleteProduct, updateProduct, loading } = useProductStore();
 
     const handleDeleteProduct = async (id) => {
         try {
@@ -55,60 +66,176 @@ const ProductCard = ({ product }) => {
         }
     };
 
-    return (
-        <Box
-            m={5}
-            // maxW="sm"
-            shadow="md"
-            rounded="lg"
-            overflow={"hidden"}
-            transition={"transform 0.2s"}
-            _hover={{ transform: "translateY(-5px)", shadow: "lg" }}
-            bg={bg}
-        >
-            <Image
-                h={48}
-                w="full"
-                objectFit="cover"
-                src={product.image}
-                alt={product.name}
-            />
-            <Box p={4}>
-                <Heading as="h3" size="lg" mb={2}>
-                    {product.name}
-                </Heading>
-                <Text color={textColor} fontSize={"md"} mb={4}>
-                    ${product.price}
-                </Text>
+    const handleEditProduct = async () => {
+        try {
+            const result = await updateProduct(product._id, {
+                name: formData.name,
+                price: parseFloat(formData.price),
+                image: formData.image,
+            });
 
-                <HStack spacing={2}>
-                    <IconButton
-                        aria-label="Update Product"
-                        colorPalette="blue"
-                        bg="blue.500"
-                        // onClick={handleEdit}
-                        _hover={{
-                            bg: "blue.600",
-                            borderColor: "blue.600",
-                        }}
-                    >
-                        <IoMdCreate />
-                    </IconButton>
-                    <IconButton
-                        aria-label="Delete Product"
-                        colorPalette="red"
-                        bg="red.500"
-                        _hover={{
-                            bg: "red.600",
-                            borderColor: "red.600",
-                        }}
-                        onClick={() => handleDeleteProduct(product._id)}
-                    >
-                        <MdDeleteOutline />
-                    </IconButton>
-                </HStack>
+            if (result.success) {
+                toaster.create({
+                    title: "Success! 🎉",
+                    description: result.message,
+                    type: "success",
+                    status: "success",
+                    duration: 3000,
+                    closable: true,
+                });
+                setIsModalOpen(false);
+            } else {
+                toaster.create({
+                    title: "Error",
+                    description: result.message,
+                    type: "error",
+                    status: "error",
+                    duration: 4000,
+                    closable: true,
+                });
+            }
+        } catch (error) {
+            console.error("Failed to update product:", error);
+            toaster.create({
+                title: "Error",
+                description: "Failed to update product. Please try again.",
+                status: "error",
+                duration: 4000,
+                closable: true,
+            });
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        // Reset form to original values
+        setFormData({
+            name: product.name,
+            price: product.price,
+            image: product.image,
+        });
+    };
+
+    return (
+        <>
+            <Box
+                w="full" // Take full width of the grid cell
+                maxW={{ base: "450px", md: "none" }} // Limit width only on mobile
+                mx="auto" // Center within the grid cell
+                shadow="md"
+                rounded="lg"
+                overflow={"hidden"}
+                transition={"transform 0.2s"}
+                _hover={{ transform: "translateY(-5px)", shadow: "lg" }}
+                bg={colors.bg}
+            >
+                <Image
+                    h={48}
+                    w="full"
+                    objectFit="cover"
+                    src={product.image}
+                    alt={product.name}
+                />
+                <Box p={4}>
+                    <Heading as="h3" size="lg" mb={2}>
+                        {product.name}
+                    </Heading>
+                    <Text color={colors.textColor} fontSize={"md"} mb={4}>
+                        ${product.price}
+                    </Text>
+
+                    <HStack spacing={2}>
+                        <IconButton
+                            onClick={() => setIsModalOpen(true)}
+                            {...styles.editIconButtonProps}
+                        >
+                            <IoMdCreate />
+                        </IconButton>
+                        <IconButton
+                            onClick={() => handleDeleteProduct(product._id)}
+                            {...styles.deleteIconButtonProps}
+                        >
+                            <MdDeleteOutline />
+                        </IconButton>
+                    </HStack>
+                </Box>
             </Box>
-        </Box>
+
+            <Dialog.Root
+                open={isModalOpen}
+                onOpenChange={(details) => {
+                    if (!details.open) {
+                        handleModalClose();
+                    }
+                }}
+                size="md"
+            >
+                <Dialog.Backdrop />
+                <Dialog.Positioner>
+                    <Dialog.Content bg={colors.modalBg}>
+                        <Dialog.Header bg={colors.modalBg}>
+                            <Dialog.Title color={colors.textColor}>
+                                Edit Product
+                            </Dialog.Title>
+                            <Dialog.CloseTrigger onClick={handleModalClose} />
+                        </Dialog.Header>
+
+                        <Dialog.Body bg={colors.modalBg}>
+                            <VStack spacing={4}>
+                                <Input
+                                    placeholder="Product Name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    {...styles.inputProps}
+                                />
+                                <Input
+                                    placeholder="Product Price"
+                                    name="price"
+                                    type="number"
+                                    value={formData.price}
+                                    onChange={handleInputChange}
+                                    {...styles.inputProps}
+                                />
+                                <Input
+                                    placeholder="Product Image URL"
+                                    name="image"
+                                    value={formData.image}
+                                    onChange={handleInputChange}
+                                    {...styles.inputProps}
+                                />
+                            </VStack>
+                        </Dialog.Body>
+
+                        <Dialog.Footer bg={colors.modalBg}>
+                            <HStack spacing={3}>
+                                <Button
+                                    onClick={handleModalClose}
+                                    {...styles.cancelButtonProps}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    loading={loading}
+                                    onClick={handleEditProduct}
+                                    {...styles.updateButtonProps}
+                                >
+                                    {loading ? "Updating..." : "Update Product"}
+                                </Button>
+                            </HStack>
+                        </Dialog.Footer>
+                    </Dialog.Content>
+                </Dialog.Positioner>
+            </Dialog.Root>
+        </>
     );
 };
 
