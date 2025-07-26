@@ -48,6 +48,7 @@ export const useProductStore = create((set, get) => ({
         set({ loading: true, error: null });
         try {
             const data = await productApi.updateProduct(id, updateData);
+            // Update UI immediately without reloading page
             set((state) => ({
                 products: state.products.map((product) =>
                     product._id === id ? data.product : product

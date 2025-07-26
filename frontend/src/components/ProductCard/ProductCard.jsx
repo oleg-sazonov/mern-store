@@ -16,19 +16,28 @@ import { toaster } from "../ui/toaster";
 import { MdDeleteOutline } from "react-icons/md";
 import { IoMdCreate } from "react-icons/io";
 import { useProductCardStyles } from "./ProductCard.styles";
+import { useFormValidation } from "@/hooks/useFormValidation";
+import { sanitizeProductData } from "@/utils/validation";
+import ValidatedInput from "../ui/ValidatedInput";
 
 const ProductCard = ({ product }) => {
     const styles = useProductCardStyles();
     const { colors } = styles;
-
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({
+    const { deleteProduct, updateProduct, loading } = useProductStore();
+
+    const {
+        formData,
+        errors,
+        validateForm,
+        handleInputChange,
+        resetForm,
+        clearErrors,
+    } = useFormValidation({
         name: product.name,
         price: product.price,
         image: product.image,
     });
-
-    const { deleteProduct, updateProduct, loading } = useProductStore();
 
     const handleDeleteProduct = async (id) => {
         try {
@@ -67,12 +76,15 @@ const ProductCard = ({ product }) => {
     };
 
     const handleEditProduct = async () => {
+        // Validate form before submission
+        const isValid = await validateForm();
+        if (!isValid) {
+            return;
+        }
+
         try {
-            const result = await updateProduct(product._id, {
-                name: formData.name,
-                price: parseFloat(formData.price),
-                image: formData.image,
-            });
+            const sanitizedData = sanitizeProductData(formData);
+            const result = await updateProduct(product._id, sanitizedData);
 
             if (result.success) {
                 toaster.create({
@@ -84,6 +96,7 @@ const ProductCard = ({ product }) => {
                     closable: true,
                 });
                 setIsModalOpen(false);
+                clearErrors();
             } else {
                 toaster.create({
                     title: "Error",
@@ -99,6 +112,7 @@ const ProductCard = ({ product }) => {
             toaster.create({
                 title: "Error",
                 description: "Failed to update product. Please try again.",
+                type: "error",
                 status: "error",
                 duration: 4000,
                 closable: true,
@@ -106,18 +120,17 @@ const ProductCard = ({ product }) => {
         }
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
+    // const handleInputChange = (e) => {
+    //     const { name, value } = e.target;
+    //     setFormData((prev) => ({
+    //         ...prev,
+    //         [name]: value,
+    //     }));
+    // };
 
     const handleModalClose = () => {
         setIsModalOpen(false);
-        // Reset form to original values
-        setFormData({
+        resetForm({
             name: product.name,
             price: product.price,
             image: product.image,
@@ -180,7 +193,11 @@ const ProductCard = ({ product }) => {
             >
                 <Dialog.Backdrop />
                 <Dialog.Positioner>
-                    <Dialog.Content bg={colors.modalBg}>
+                    <Dialog.Content
+                        bg={colors.modalBg}
+                        rounded="xl"
+                        shadow="2xl"
+                    >
                         <Dialog.Header bg={colors.modalBg}>
                             <Dialog.Title color={colors.textColor}>
                                 Edit Product
@@ -190,27 +207,31 @@ const ProductCard = ({ product }) => {
 
                         <Dialog.Body bg={colors.modalBg}>
                             <VStack spacing={4}>
-                                <Input
+                                <ValidatedInput
                                     placeholder="Product Name"
                                     name="name"
                                     value={formData.name}
                                     onChange={handleInputChange}
-                                    {...styles.inputProps}
+                                    error={errors.name}
                                 />
-                                <Input
+
+                                <ValidatedInput
                                     placeholder="Product Price"
                                     name="price"
                                     type="number"
+                                    step="0.01"
+                                    min="0"
                                     value={formData.price}
                                     onChange={handleInputChange}
-                                    {...styles.inputProps}
+                                    error={errors.price}
                                 />
-                                <Input
+
+                                <ValidatedInput
                                     placeholder="Product Image URL"
                                     name="image"
                                     value={formData.image}
                                     onChange={handleInputChange}
-                                    {...styles.inputProps}
+                                    error={errors.image}
                                 />
                             </VStack>
                         </Dialog.Body>

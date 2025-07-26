@@ -12,6 +12,10 @@ export const useProductCardStyles = () => {
     const buttonHoverBg = useColorModeValue("gray.50", "gray.600");
     const buttonHoverBorderColor = useColorModeValue("gray.400", "gray.400");
 
+    // Validation colors
+    const errorBorderColor = "red.500";
+    const errorTextColor = "red.500";
+
     return {
         // Colors for direct use
         colors: {
@@ -24,6 +28,8 @@ export const useProductCardStyles = () => {
             buttonBorderColor,
             buttonHoverBg,
             buttonHoverBorderColor,
+            errorBorderColor,
+            errorTextColor,
         },
 
         // Component props
@@ -33,6 +39,21 @@ export const useProductCardStyles = () => {
             color: textColor,
             _placeholder: { color: placeholderColor },
         },
+
+        // Input props with error state support
+        getInputProps: (hasError) => ({
+            bg: inputBg,
+            borderColor: hasError ? errorBorderColor : inputBorderColor,
+            color: textColor,
+            rounded: "md",
+            _placeholder: { color: placeholderColor },
+            _focus: {
+                borderColor: hasError ? errorBorderColor : "blue.500",
+                boxShadow: hasError
+                    ? "0 0 0 1px var(--chakra-colors-red-500)"
+                    : "0 0 0 1px var(--chakra-colors-blue-500)",
+            },
+        }),
 
         cancelButtonProps: {
             variant: "outline",

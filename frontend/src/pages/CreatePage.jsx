@@ -9,38 +9,35 @@ import {
     Input,
     VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useFormValidation } from "@/hooks/useFormValidation";
+import { sanitizeProductData } from "@/utils/validation";
+import ValidatedInput from "@/components/ui/ValidatedInput";
 
 const CreatePage = () => {
-    const [newProduct, setNewProduct] = useState({
-        name: "",
-        price: "",
-        image: "",
-    });
     const { createProduct, loading } = useProductStore();
+    const { formData, errors, validateForm, handleInputChange, resetForm } =
+        useFormValidation();
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewProduct((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
+    const handleAddProduct = async () => {
+        // Validate form before submission
+        const isValid = await validateForm();
+        if (!isValid) {
+            return;
+        }
 
-    const handleAddProduct = async (product) => {
-        const { success, message } = await createProduct(product);
+        const sanitizedData = sanitizeProductData(formData);
+        const { success, message } = await createProduct(sanitizedData);
 
         if (success) {
             toaster.create({
-                title: "Success!",
+                title: "Success! 🎉",
                 description: message,
                 type: "success",
                 status: "success",
                 duration: 3000,
                 closable: true,
             });
-            // Reset form
-            setNewProduct({ name: "", price: "", image: "" });
+            resetForm();
         } else {
             toaster.create({
                 title: "Error",
@@ -70,32 +67,41 @@ const CreatePage = () => {
                     shadow={"md"}
                 >
                     <VStack spacing={4}>
-                        <Input
+                        <ValidatedInput
                             placeholder="Product Name"
                             name="name"
-                            value={newProduct.name}
+                            value={formData.name}
                             onChange={handleInputChange}
+                            error={errors.name}
                         />
-                        <Input
+
+                        <ValidatedInput
                             placeholder="Product Price"
                             name="price"
                             type="number"
-                            value={newProduct.price}
+                            step="0.01"
+                            min="0"
+                            value={formData.price}
                             onChange={handleInputChange}
+                            error={errors.price}
                         />
-                        <Input
+
+                        <ValidatedInput
                             placeholder="Product Image URL"
                             name="image"
-                            value={newProduct.image}
+                            value={formData.image}
                             onChange={handleInputChange}
+                            error={errors.image}
                         />
+
                         <Button
                             w={"full"}
-                            colorPalette="gray"
+                            colorPalette="blue"
+                            bg="blue.500"
+                            color="white"
+                            _hover={{ bg: "blue.600" }}
                             loading={loading}
-                            onClick={() => {
-                                handleAddProduct(newProduct);
-                            }}
+                            onClick={handleAddProduct}
                         >
                             {loading ? "Creating..." : "Add Product"}
                         </Button>
