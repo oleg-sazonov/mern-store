@@ -12,7 +12,7 @@ import {
 import { Dialog } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useProductStore } from "@/store/product";
-import { toaster } from "./ui/toaster";
+import { toaster } from "../ui/toaster";
 import { MdDeleteOutline } from "react-icons/md";
 import { IoMdCreate } from "react-icons/io";
 import { useProductCardStyles } from "./ProductCard.styles";

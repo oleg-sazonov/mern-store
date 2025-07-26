@@ -1,4 +1,4 @@
-import { useColorModeValue } from "./ui/color-mode";
+import { useColorModeValue } from "../ui/color-mode";
 
 export const useProductCardStyles = () => {
     // Color mode values

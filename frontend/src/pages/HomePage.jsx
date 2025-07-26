@@ -10,7 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import { useProductStore } from "@/store/product";
 import { useEffect } from "react";
-import ProductCard from "@/components/ProductCard";
+import ProductCard from "@/components/ProductCard/ProductCard";
 
 const HomePage = () => {
     const { products, loading, error, fetchProducts, clearError } =
