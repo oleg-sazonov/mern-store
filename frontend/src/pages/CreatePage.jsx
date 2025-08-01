@@ -10,22 +10,39 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import { useFormValidation } from "@/hooks/useFormValidation";
-import { sanitizeProductData } from "@/utils/validation";
+// import { sanitizeProductData } from "@/utils/validation";
 import ValidatedInput from "@/components/ui/ValidatedInput";
 
 const CreatePage = () => {
     const { createProduct, loading } = useProductStore();
-    const { formData, errors, validateForm, handleInputChange, resetForm } =
-        useFormValidation();
+
+    // Enhanced form validation with options
+    const {
+        formData,
+        errors,
+        validateForm,
+        handleInputChange,
+        handleFieldBlur,
+        resetForm,
+        isValidating,
+        hasErrors,
+    } = useFormValidation(
+        { name: "", price: "", image: "" },
+        {
+            enableRealTimeValidation: true,
+            validationDelay: 300,
+            sanitizeOnChange: true,
+            showToastOnError: false, // Handle toast manually for better UX
+        }
+    );
 
     const handleAddProduct = async () => {
         // Validate form before submission
-        const isValid = await validateForm();
+        const { isValid, sanitizedData } = await validateForm();
         if (!isValid) {
             return;
         }
 
-        const sanitizedData = sanitizeProductData(formData);
         const { success, message } = await createProduct(sanitizedData);
 
         if (success) {
@@ -49,6 +66,7 @@ const CreatePage = () => {
             });
         }
     };
+
     return (
         <Container
             maxW={"2xl"}
@@ -59,6 +77,7 @@ const CreatePage = () => {
                 <Heading as={"h1"} size={"2xl"} textAlign={"center"} mb={8}>
                     Create New Product
                 </Heading>
+
                 <Box
                     w={"full"}
                     bg={useColorModeValue("gray.100", "gray.700")}
@@ -72,6 +91,7 @@ const CreatePage = () => {
                             name="name"
                             value={formData.name}
                             onChange={handleInputChange}
+                            onBlur={handleFieldBlur}
                             error={errors.name}
                         />
 
@@ -83,6 +103,7 @@ const CreatePage = () => {
                             min="0"
                             value={formData.price}
                             onChange={handleInputChange}
+                            onBlur={handleFieldBlur}
                             error={errors.price}
                         />
 
@@ -91,6 +112,7 @@ const CreatePage = () => {
                             name="image"
                             value={formData.image}
                             onChange={handleInputChange}
+                            onBlur={handleFieldBlur}
                             error={errors.image}
                         />
 
@@ -101,6 +123,7 @@ const CreatePage = () => {
                             color="white"
                             _hover={{ bg: "blue.600" }}
                             loading={loading}
+                            disabled={hasErrors || isValidating}
                             onClick={handleAddProduct}
                         >
                             {loading ? "Creating..." : "Add Product"}

@@ -17,7 +17,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { IoMdCreate } from "react-icons/io";
 import { useProductCardStyles } from "./ProductCard.styles";
 import { useFormValidation } from "@/hooks/useFormValidation";
-import { sanitizeProductData } from "@/utils/validation";
+// import { sanitizeProductData } from "@/utils/validation";
 import ValidatedInput from "../ui/ValidatedInput";
 
 const ProductCard = ({ product }) => {
@@ -26,18 +26,30 @@ const ProductCard = ({ product }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { deleteProduct, updateProduct, loading } = useProductStore();
 
+    // Enhanced form validation with better options for modal context
     const {
         formData,
         errors,
         validateForm,
         handleInputChange,
+        handleFieldBlur,
         resetForm,
         clearErrors,
-    } = useFormValidation({
-        name: product.name,
-        price: product.price,
-        image: product.image,
-    });
+        hasErrors,
+        isValidating,
+    } = useFormValidation(
+        {
+            name: product.name,
+            price: product.price,
+            image: product.image,
+        },
+        {
+            enableRealTimeValidation: true,
+            validationDelay: 300,
+            sanitizeOnChange: true,
+            showToastOnError: false, // Handle validation errors manually in modal
+        }
+    );
 
     const handleDeleteProduct = async (id) => {
         try {
@@ -75,15 +87,32 @@ const ProductCard = ({ product }) => {
         }
     };
 
+    // Corrected validation handling
     const handleEditProduct = async () => {
-        // Validate form before submission
-        const isValid = await validateForm();
-        if (!isValid) {
-            return;
-        }
-
         try {
-            const sanitizedData = sanitizeProductData(formData);
+            // Validate form before submission
+            const { isValid, sanitizedData } = await validateForm();
+
+            if (!isValid) {
+                // Show validation errors in toast for better UX
+                const errorMessages = Object.values(errors)
+                    .filter((error) => error)
+                    .slice(0, 2); // Show max 2 errors
+
+                if (errorMessages.length > 0) {
+                    toaster.create({
+                        title: "Validation Error",
+                        description: errorMessages.join(". "),
+                        type: "error",
+                        status: "error",
+                        duration: 4000,
+                        closable: true,
+                    });
+                }
+                return;
+            }
+
+            // Update product with sanitized data
             const result = await updateProduct(product._id, sanitizedData);
 
             if (result.success) {
@@ -135,6 +164,18 @@ const ProductCard = ({ product }) => {
             price: product.price,
             image: product.image,
         });
+        clearErrors();
+    };
+
+    // Modal open handler to reset form state
+    const handleModalOpen = () => {
+        setIsModalOpen(true);
+        resetForm({
+            name: product.name,
+            price: product.price,
+            image: product.image,
+        });
+        clearErrors();
     };
 
     return (
@@ -167,7 +208,7 @@ const ProductCard = ({ product }) => {
 
                     <HStack spacing={2}>
                         <IconButton
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={handleModalOpen} // Use proper modal open handler
                             {...styles.editIconButtonProps}
                         >
                             <IoMdCreate />
@@ -212,6 +253,7 @@ const ProductCard = ({ product }) => {
                                     name="name"
                                     value={formData.name}
                                     onChange={handleInputChange}
+                                    onBlur={handleFieldBlur} // Field blur validation
                                     error={errors.name}
                                 />
 
@@ -223,6 +265,7 @@ const ProductCard = ({ product }) => {
                                     min="0"
                                     value={formData.price}
                                     onChange={handleInputChange}
+                                    onBlur={handleFieldBlur} // Field blur validation
                                     error={errors.price}
                                 />
 
@@ -231,6 +274,7 @@ const ProductCard = ({ product }) => {
                                     name="image"
                                     value={formData.image}
                                     onChange={handleInputChange}
+                                    onBlur={handleFieldBlur} // Field blur validation
                                     error={errors.image}
                                 />
                             </VStack>
@@ -241,15 +285,21 @@ const ProductCard = ({ product }) => {
                                 <Button
                                     onClick={handleModalClose}
                                     {...styles.cancelButtonProps}
+                                    disabled={loading} // Disable during loading
                                 >
                                     Cancel
                                 </Button>
                                 <Button
-                                    loading={loading}
+                                    loading={loading || isValidating} // Show loading during validation
                                     onClick={handleEditProduct}
+                                    disabled={hasErrors} // Disable when validation errors exist
                                     {...styles.updateButtonProps}
                                 >
-                                    {loading ? "Updating..." : "Update Product"}
+                                    {loading
+                                        ? "Updating..."
+                                        : isValidating
+                                        ? "Validating..."
+                                        : "Update Product"}
                                 </Button>
                             </HStack>
                         </Dialog.Footer>
