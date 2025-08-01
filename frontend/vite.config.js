@@ -6,12 +6,18 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
     plugins: [react(), tsconfigPaths()],
     server: {
-        proxy: {
-            "/api": {
-                target: "http://localhost:5000",
-                changeOrigin: true,
-                secure: false,
-            },
-        },
+        // proxy: {
+        //     // Only proxy existing API routes, not all /api/*
+        //     "/api/products": {
+        //         target: "http://localhost:5000",
+        //         changeOrigin: true,
+        //         secure: false,
+        //     },
+        //     "/health": {
+        //         target: "http://localhost:5000",
+        //         changeOrigin: true,
+        //         secure: false,
+        //     },
+        // },
     },
 });

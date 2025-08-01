@@ -28,15 +28,17 @@ export const setupStaticFiles = (app, NODE_ENV, __dirname) => {
 
         // Use middleware function instead of problematic "*" route
         app.use((req, res, next) => {
-            // Only handle GET requests for non-API routes
-            if (req.method === "GET" && !req.path.startsWith("/api/")) {
+            if (
+                req.method === "GET" &&
+                !req.path.startsWith("/api/") &&
+                !req.path.startsWith("/health")
+            ) {
                 const indexPath = path.resolve(
                     __dirname,
                     "frontend",
                     "dist",
                     "index.html"
                 );
-
                 console.log(`📄 Serving React app for: ${req.originalUrl}`);
 
                 res.sendFile(indexPath, (err) => {
@@ -58,7 +60,7 @@ export const setupStaticFiles = (app, NODE_ENV, __dirname) => {
     } else {
         console.log("🔧 Development mode: Static file serving disabled");
 
-        // Use middleware function instead of problematic "*" route
+        // In development, let React Router handle all non-API routes
         app.use((req, res, next) => {
             // Only handle GET requests for non-API routes in development
             if (
@@ -66,13 +68,53 @@ export const setupStaticFiles = (app, NODE_ENV, __dirname) => {
                 !req.path.startsWith("/api/") &&
                 !req.path.startsWith("/health")
             ) {
-                res.status(404).json({
-                    error: "Not Found",
-                    message:
-                        "This route is only available in production. Use the frontend dev server.",
-                    hint: "Run 'npm run dev' in the frontend directory",
-                    path: req.originalUrl,
-                });
+                // ✅ Let React Router handle this - don't send JSON response
+                console.log(
+                    `🔄 Development: Letting frontend handle route: ${req.originalUrl}`
+                );
+
+                // Return simple HTML that tells browser to use frontend dev server
+                res.status(404).send(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Development Mode</title>
+                        <style>
+                            body { 
+                                font-family: Arial, sans-serif; 
+                                text-align: center; 
+                                padding: 50px; 
+                                background: #f5f5f5; 
+                            }
+                            .container {
+                                max-width: 600px;
+                                margin: 0 auto;
+                                background: white;
+                                padding: 30px;
+                                border-radius: 10px;
+                                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                            }
+                            .code { 
+                                background: #f0f0f0; 
+                                padding: 10px; 
+                                border-radius: 5px; 
+                                font-family: monospace; 
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1>🔧 Development Mode</h1>
+                            <p>This route is handled by the frontend dev server.</p>
+                            <div class="code">
+                                <strong>Frontend:</strong> http://localhost:5173${req.originalUrl}
+                            </div>
+                            <p>Make sure your frontend dev server is running:</p>
+                            <div class="code">cd frontend && npm run dev</div>
+                        </div>
+                    </body>
+                    </html>
+                `);
             } else {
                 next();
             }
