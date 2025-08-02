@@ -13,11 +13,3 @@ export const validateEnvironment = () => {
         process.exit(1);
     }
 };
-
-export const validatePort = (port) => {
-    const portNum = parseInt(port, 10);
-    if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
-        throw new Error(`Invalid port number: ${port}`);
-    }
-    return portNum;
-};

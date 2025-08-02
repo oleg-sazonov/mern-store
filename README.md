@@ -11,10 +11,8 @@ A full-stack product management app built with the MERN stack (MongoDB, Express.
     -   Modular Express app structure
     -   Secure MongoDB connection with optimized pooling
     -   Environment-based configuration (.env)
-    -   Rate limiting, CORS, Helmet security
     -   RESTful API for product CRUD
     -   Centralized error handling and graceful shutdown
-    -   Static file serving for production
 
 -   **Frontend (React + Vite + Chakra UI)**
     -   Modern React with hooks and Zustand state management
@@ -23,33 +21,6 @@ A full-stack product management app built with the MERN stack (MongoDB, Express.
     -   Form validation with Yup
     -   Dark/light mode support
     -   Toast notifications and modals
-
----
-
-## 📦 Project Structure
-
-```
-mern-store/
-├── backend/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── uploads/
-│   ├── utils/
-│   ├── app.js
-│   └── server.js
-├── frontend/
-|   ├── package.json
-|   ├── vite.config.js
-|   ├── src/
-|   └── public/
-├── .env
-├── package.json
-├── server-js-reusability-guide.md
-└── README.md
-```
 
 ---
 
@@ -83,8 +54,6 @@ cd ..
 NODE_ENV=development
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/products
-FRONTEND_URL=http://localhost:3000
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
 
 ---
@@ -109,13 +78,6 @@ Frontend: http://localhost:5173
 
 ---
 
-## 🧩 Reusability
-
--   See server-js-reusability-guide.md for instructions on reusing the backend entry point in other projects.
--   Modular backend and frontend code can be adapted for e-commerce, blog, task management, and more.
-
----
-
 ## 📝 API Endpoints
 
 -   GET /api/products - List all products
@@ -123,29 +85,6 @@ Frontend: http://localhost:5173
 -   PATCH /api/products/:id - Update a product
 -   DELETE /api/products/:id - Delete a product
 -   GET /health - Health check
-
----
-
-## 🛡️ Security
-
--   Helmet for HTTP headers
--   Rate limiting for API and general requests
--   CORS configuration for allowed origins
--   Centralized error handling
-
----
-
-## 📚 Documentation
-
--   server-js-reusability-guide.md: How to reuse the backend entry point in other projects
-
----
-
-## 🏗️ Build & Deployment
-
--   Production build: npm run build
--   Static files served from frontend/dist in production
--   Environment-based configuration for easy deployment
 
 ---
 

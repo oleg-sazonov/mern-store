@@ -1,9 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
 export const productApi = {
     // Get all products
     getAllProducts: async () => {
-        const res = await fetch(`${API_URL}/api/products`);
+        const res = await fetch(`/api/products`);
         const data = await res.json();
 
         if (!res.ok) {
@@ -19,7 +17,7 @@ export const productApi = {
             throw new Error("Please fill in all fields");
         }
 
-        const res = await fetch(`${API_URL}/api/products`, {
+        const res = await fetch(`/api/products`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -38,7 +36,7 @@ export const productApi = {
 
     // Update product
     updateProduct: async (id, updateData) => {
-        const res = await fetch(`${API_URL}/api/products/${id}`, {
+        const res = await fetch(`/api/products/${id}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -57,7 +55,7 @@ export const productApi = {
 
     // Delete product
     deleteProduct: async (id) => {
-        const res = await fetch(`${API_URL}/api/products/${id}`, {
+        const res = await fetch(`/api/products/${id}`, {
             method: "DELETE",
         });
 

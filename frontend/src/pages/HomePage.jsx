@@ -20,7 +20,7 @@ const HomePage = () => {
         fetchProducts();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Remove fetchProducts from dependencies to prevent re-renders
-    console.log("Products:", products);
+    // console.log("Products:", products);
 
     // Loading state
     if (loading && products.length === 0) {
