@@ -5,6 +5,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react(), tsconfigPaths()],
+    base: "/",
     server: {
         // proxy: {
         //     // Only proxy existing API routes, not all /api/*
@@ -19,5 +20,14 @@ export default defineConfig({
         //         secure: false,
         //     },
         // },
+    },
+    build: {
+        outDir: "dist",
+        assetsDir: "assets",
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,
+            },
+        },
     },
 });
