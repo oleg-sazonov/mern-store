@@ -96,28 +96,28 @@ export const bootstrap = async () => {
         // Create Express app with all middleware and routes
         const app = createApp();
 
-        // if (process.env.NODE_ENV === "production") {
-        //     app.use(express.static(path.join(__dirname, "/frontend/dist")));
-        //     app.get("*", (req, res) => {
-        //         res.sendFile(
-        //             path.resolve(__dirname, "frontend", "dist", "index.html")
-        //         );
-        //     });
-        // }
-
-        // Serve static files in production
-        if (NODE_ENV === "production") {
-            const frontendDistPath = path.join(__dirname, "frontend", "dist");
-
-            console.log(`📦 Serving static files from: ${frontendDistPath}`);
-            app.use(express.static(frontendDistPath));
-
-            // Catch-all handler for SPA routing
+        if (process.env.NODE_ENV === "production") {
+            app.use(express.static(path.join(__dirname, "/frontend/dist")));
             app.get("*", (req, res) => {
-                console.log(`📄 Serving React app for: ${req.path}`);
-                res.sendFile(path.join(frontendDistPath, "index.html"));
+                res.sendFile(
+                    path.resolve(__dirname, "frontend", "dist", "index.html")
+                );
             });
         }
+
+        // Serve static files in production
+        // if (NODE_ENV === "production") {
+        //     const frontendDistPath = path.join(__dirname, "frontend", "dist");
+
+        //     console.log(`📦 Serving static files from: ${frontendDistPath}`);
+        //     app.use(express.static(frontendDistPath));
+
+        //     // Catch-all handler for SPA routing
+        //     app.get("*", (req, res) => {
+        //         console.log(`📄 Serving React app for: ${req.path}`);
+        //         res.sendFile(path.join(frontendDistPath, "index.html"));
+        //     });
+        // }
 
         // Start the server
         const server = await startServer(app, PORT, NODE_ENV);
