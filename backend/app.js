@@ -96,26 +96,58 @@ export const bootstrap = async () => {
         // Create Express app with all middleware and routes
         const app = createApp();
 
-        // if (process.env.NODE_ENV === "production") {
-        //     app.use(express.static(path.join(__dirname, "/frontend/dist")));
-        //     app.get("*", (req, res) => {
-        //         res.sendFile(
-        //             path.resolve(__dirname, "frontend", "dist", "index.html")
-        //         );
-        //     });
-        // }
+        // Add health check route BEFORE static file serving
+        app.get("/health", (req, res) => {
+            res.status(200).json({
+                status: "OK",
+                message: "Server is running",
+                timestamp: new Date().toISOString(),
+                environment: NODE_ENV,
+            });
+        });
 
-        // Serve static files in production
+        // Serve static files in production with proper route ordering
         if (NODE_ENV === "production") {
             const frontendDistPath = path.join(__dirname, "frontend", "dist");
 
             console.log(`📦 Serving static files from: ${frontendDistPath}`);
-            app.use(express.static(frontendDistPath));
 
-            // Catch-all handler for SPA routing
-            app.get("*", (req, res) => {
+            // Serve static files with proper cache headers
+            app.use(
+                express.static(frontendDistPath, {
+                    maxAge: "1d", // Cache static assets for 1 day
+                    index: false, // Don't serve index.html for directory requests
+                })
+            );
+
+            // Improved SPA routing handler - MUST be after API routes but before error handlers
+            app.get("*", (req, res, next) => {
+                // Skip API routes - let them go to 404 handler
+                if (req.path.startsWith("/api/")) {
+                    return next();
+                }
+
+                // Skip health check
+                if (req.path === "/health") {
+                    return next();
+                }
+
                 console.log(`📄 Serving React app for: ${req.path}`);
-                res.sendFile(path.join(frontendDistPath, "index.html"));
+
+                // Check if index.html exists before serving
+                const indexPath = path.join(frontendDistPath, "index.html");
+                res.sendFile(indexPath, (err) => {
+                    if (err) {
+                        console.error(
+                            `❌ Error serving index.html:`,
+                            err.message
+                        );
+                        res.status(500).json({
+                            success: false,
+                            message: "Failed to serve application",
+                        });
+                    }
+                });
             });
         }
 

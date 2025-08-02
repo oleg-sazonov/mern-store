@@ -1,5 +1,5 @@
 export const notFoundHandler = (req, res, next) => {
-    // Check if the request path starts with /api/ but wasn't handled by previous routes
+    // Handle API routes that weren't matched
     if (req.path.startsWith("/api/")) {
         console.log(`🔍 API 404: ${req.method} ${req.originalUrl}`);
         return res.status(404).json({
@@ -18,8 +18,18 @@ export const notFoundHandler = (req, res, next) => {
         });
     }
 
-    // Continue to next middleware for non-API routes
-    next();
+    // For non-API routes in production, let them fall through to React app
+    if (process.env.NODE_ENV === "production") {
+        return next();
+    }
+
+    // In development, show 404 for non-API routes
+    res.status(404).json({
+        success: false,
+        message: `Route '${req.originalUrl}' not found`,
+        path: req.originalUrl,
+        method: req.method,
+    });
 };
 
 export const globalErrorHandler = (err, req, res, next) => {
